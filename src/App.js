@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes, createGlobalStyle } from 'styled-components';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
 import CoupleConnection from './components/auth/CoupleConnection';
@@ -7,22 +7,35 @@ import ChildDisplay from './components/child/ChildDisplay';
 import EventSystem from './components/events/EventSystem';
 import ChildStatus from './components/child/ChildStatus';
 import MemoryAlbum from './components/album/MemoryAlbum';
-import { AudioProvider, useAudio } from './components/common/AudioManager';
 import Background from './components/common/Background';
 import Achievements from './components/stats/Achievements';
 import GrowthEvents from './components/events/GrowthEvents';
 import MiniGames from './components/games/MiniGames';
 
-// AudioControls 컴포넌트 생성
-const AudioControls = () => {
-  const { isMuted, toggleMute } = useAudio();
+const floatObject = keyframes`
+  0% { transform: translate(0, 0) rotate(0deg); }
+  25% { transform: translate(10px, 10px) rotate(90deg); }
+  50% { transform: translate(0, 20px) rotate(180deg); }
+  75% { transform: translate(-10px, 10px) rotate(270deg); }
+  100% { transform: translate(0, 0) rotate(360deg); }
+`;
 
-  return (
-    <AudioButton onClick={toggleMute}>
-      {isMuted ? '🔇' : '🔊'}
-    </AudioButton>
-  );
-};
+const GlobalStyle = createGlobalStyle`
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans KR', sans-serif;
+  }
+
+  button {
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: 500;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Black Han Sans', sans-serif;
+  }
+`;
 
 function AppContent() {
   const [isLoginView, setIsLoginView] = useState(true);
@@ -51,8 +64,6 @@ function AppContent() {
     }
   });
 
-  const { playSound } = useAudio();
-
   // 시간 시스템 (테스트를 위해 10초를 1년으로 설정)
   useEffect(() => {
     if (isCoupleConnected) {
@@ -71,13 +82,6 @@ function AppContent() {
       return () => clearInterval(timer);
     }
   }, [isCoupleConnected]);
-
-  // 레벨업(나이 증가) 시 효과음 재생
-  useEffect(() => {
-    if (childData.age > 0) {
-      playSound('levelUp');
-    }
-  }, [childData.age]);
 
   const handleAction = (actionType, changes) => {
     setChildStats(prev => ({
@@ -123,8 +127,6 @@ function AppContent() {
 
   // 이벤트 결정 시 추억 추가
   const handleEventDecision = (eventId, choiceId, effects = null) => {
-    playSound('event');
-    
     // childStats 업데이트
     setChildStats(prev => ({
       ...prev,
@@ -220,8 +222,6 @@ function AppContent() {
   };
 
   const handleGameComplete = (gameId, score, effects) => {
-    playSound('success');
-    
     // 게임 효과 적용
     setChildData(prev => {
       const newStats = { ...prev.stats };
@@ -290,10 +290,11 @@ function AppContent() {
 
   return (
     <Container>
+      <div className="satellite">🛸</div>
+      <div className="comet">☄️</div>
       <Background age={childData.age} />
       <Header>
         <Title>우리의 작은 세계</Title>
-        <AudioControls />
       </Header>
       <MainContent>
         {!isLoggedIn ? (
@@ -346,9 +347,10 @@ function AppContent() {
 // 메인 App 컴포넌트
 function App() {
   return (
-    <AudioProvider>
+    <>
+      <GlobalStyle />
       <AppContent />
-    </AudioProvider>
+    </>
   );
 }
 
@@ -358,14 +360,107 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: #f0f8ff;
+  background: linear-gradient(to bottom, #1a1b4b, #0f1033);
   padding: 20px;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(2px 2px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 40px 70px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 50px 160px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 90px 40px, #ffffff, rgba(0,0,0,0)),
+      radial-gradient(2px 2px at 130px 80px, #ffffff, rgba(0,0,0,0));
+    background-repeat: repeat;
+    animation: twinkle 5s ease-in-out infinite alternate;
+    opacity: 0.3;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '🚀';
+    position: fixed;
+    font-size: 2rem;
+    top: 20%;
+    right: -50px;
+    animation: ${floatObject} 20s linear infinite;
+  }
+
+  .satellite {
+    content: '🛸';
+    position: fixed;
+    font-size: 2rem;
+    bottom: 30%;
+    left: -50px;
+    animation: ${floatObject} 25s linear infinite;
+    animation-delay: -5s;
+  }
+
+  .comet {
+    content: '☄️';
+    position: fixed;
+    font-size: 2rem;
+    top: 40%;
+    left: 50%;
+    animation: ${floatObject} 15s linear infinite;
+    animation-delay: -10s;
+  }
+
+  @keyframes twinkle {
+    from {
+      opacity: 0.3;
+    }
+    to {
+      opacity: 0.6;
+    }
+  }
 `;
 
 const Title = styled.h1`
-  color: #4a90e2;
-  font-size: 2.5rem;
+  color: #fff;
+  font-size: 2.8rem;
   margin-bottom: 2rem;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  font-weight: 400;
+  letter-spacing: 1px;
+  position: relative;
+  font-family: 'Black Han Sans', sans-serif;
+  text-align: center;
+  width: 100%;
+  
+  @media (max-width: 768px) {
+    font-size: 2.2rem;
+    letter-spacing: 0px;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 320px) {
+    font-size: 1.5rem;
+    white-space: nowrap;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(to right, transparent, #a0a8ff, transparent);
+  }
 `;
 
 const MainContent = styled.div`
@@ -375,6 +470,8 @@ const MainContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: 20px;
+  position: relative;
+  z-index: 1;
 `;
 
 const WelcomeMessage = styled.p`
@@ -399,19 +496,22 @@ const StartButton = styled.button`
 `;
 
 const AlbumButton = styled.button`
-  background-color: #4a90e2;
+  background: linear-gradient(135deg, #4a4eff 0%, #2e3192 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
+  border-radius: 25px;
+  padding: 12px 30px;
+  font-size: 1.1rem;
   cursor: pointer;
   transition: all 0.3s;
   margin: 20px 0;
+  box-shadow: 0 4px 15px rgba(74, 78, 255, 0.2);
+  font-weight: 600;
+  letter-spacing: 1px;
 
   &:hover {
-    background-color: #357abd;
     transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(74, 78, 255, 0.3);
   }
 
   &:active {
@@ -427,19 +527,11 @@ const Header = styled.div`
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
-`;
+  position: relative;
+  z-index: 1;
 
-const AudioButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 10px;
-  border-radius: 50%;
-  transition: all 0.3s;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
+  @media (max-width: 480px) {
+    padding: 15px 10px;
   }
 `;
 
