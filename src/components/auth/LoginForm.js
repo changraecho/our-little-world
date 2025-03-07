@@ -46,6 +46,9 @@ const FormContainer = styled.div`
   background-color: white;
   border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
 `;
 
 const Title = styled.h2`

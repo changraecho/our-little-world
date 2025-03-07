@@ -469,6 +469,7 @@ const MainContent = styled.div`
   margin: 0 auto;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 20px;
   position: relative;
   z-index: 1;
